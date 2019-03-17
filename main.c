@@ -1,8 +1,14 @@
 #include <stdio.h>
+#include <stdlib.h>
+
+struct color
+{
+    unsigned char r, g, b;
+};
 
 void addTgaHeader(FILE *ft, int width, int height);
 
-void addYellowBlob(FILE *ft, int width, int height);
+void commitImage(FILE *ft, struct color *data, int width, int height);
 
 int main(void)
 {
@@ -13,8 +19,22 @@ int main(void)
     FILE *ft;
     ft = fopen(name, "w");
     addTgaHeader(ft, width, height);
-    addYellowBlob(ft, width, height);
+
+    struct color *ptr;
+    ptr = (struct color*) malloc((width * height) * sizeof(struct color));
+
+    int resolution = width * height;
+    for(int i = 0; i < resolution; i++)
+    {
+        (ptr + i)->r = 255;
+        (ptr + i)->g = 0;
+        (ptr + i)->b = 0;
+    }
+
+    commitImage(ft, ptr, width, height);
+
     fclose(ft);
+    free(ptr);
     return 0;
 }
 
@@ -36,13 +56,13 @@ void addTgaHeader(FILE *ft, int width, int height)
     putc(0,ft);
 }
 
-void addYellowBlob(FILE *ft, int width, int height)
+void commitImage(FILE *ft, struct color *data, int width, int height)
 {
     for(int i = 0; i < width * height; i++)
     {
-        putc(255, ft);
-        putc(0, ft);
-        putc(255, ft);
+        putc((data + i)->b, ft);
+        putc((data + i)->g, ft);
+        putc((data + i)->r, ft);
     }
 }
 
