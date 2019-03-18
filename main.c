@@ -92,6 +92,11 @@ int main(void)
 
     fclose(ft);
     free(ptr);
+    free(green);
+    free(darkGreen);
+    free(white);
+    free(yellow);
+    free(pureWhite);
     return 0;
 }
 
@@ -144,13 +149,6 @@ void circle(color *data, int imgWidth, int imgHeight, int x, int y, int radius, 
     int twoRadius = 2 * radius;
     double end = 2 * PI;
     double stepSize = end / 50;
-
-    //for(int dx = x; dx < x + twoRadius; dx++)
-    //{
-        //int sPos = (int)(sin((dx - x) / (twoRadius / PI)) * radius);
-        //point(data, imgWidth, imgHeight, dx, y - sPos, fill);
-        //point(data, imgWidth, imgHeight, dx, y + sPos, fill);
-    //}
 
     double angle = 0;
     double px = (sin(angle) * radius) + x;
