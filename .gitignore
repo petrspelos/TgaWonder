@@ -54,3 +54,4 @@ dkms.conf
 # Application files
 result.tga
 
+.idea/
