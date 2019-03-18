@@ -1,5 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <math.h>
+
+#define PI 3.14159265
 
 typedef struct color
 {
@@ -11,6 +14,12 @@ void addTgaHeader(FILE *ft, int width, int height);
 void commitImage(FILE *ft, struct color *data, int width, int height);
 
 void rect(color *data, int imgWidth, int imgHeight, int x, int y, int width, int height, color *fill);
+
+void circle(color *data, int imgWidth, int imgHeight, int x, int y, int radius, color *fill);
+
+void flower(color *data, int imgWidth, int imgHeight, int x, int y, int radius, color *fill);
+
+void point(color *data, int imgWidth, int imgHeight, int x, int y, color *fill);
 
 int coordToOffset(int x, int y, int width, int height)
 {
@@ -33,25 +42,51 @@ int main(void)
     int resolution = width * height;
     for(int i = 0; i <= resolution; i++)
     {
-        (ptr + i)->r = 255;
-        (ptr + i)->g = 0;
-        (ptr + i)->b = 255;
+        (ptr + i)->r = 0;
+        (ptr + i)->g = 153;
+        (ptr + i)->b = 204;
     }
+
+    color *green;
+    green = (color*) malloc(sizeof(color));
+    green->r = 23;
+    green->g = 167;
+    green->b = 47;
+
+    color *darkGreen;
+    darkGreen = (color*) malloc(sizeof(color));
+    darkGreen->r = 9;
+    darkGreen->g = 67;
+    darkGreen->b = 19;
 
     color *white;
     white = (color*) malloc(sizeof(color));
-    white->r = 255;
-    white->g = 255;
-    white->b = 255;
+    white->r = 234;
+    white->g = 234;
+    white->b = 234;
 
-    color *red;
-    red = (color*) malloc(sizeof(color));
-    red->r = 255;
-    red->g = 0;
-    red->b = 0;
+    color *yellow;
+    yellow = (color*) malloc(sizeof(color));
+    yellow->r = 255;
+    yellow->g = 255;
+    yellow->b = 0;
 
-    rect(ptr, width, height, 50, 50, 50, 50, white);
-    rect(ptr, width, height, 0, 49, 2, 2, red);
+    color *pureWhite;
+    pureWhite = (color*) malloc(sizeof(color));
+    pureWhite->r = 255;
+    pureWhite->g = 255;
+    pureWhite->b = 255;
+
+    rect(ptr, width, height, 0, 50, width, 50, green);
+
+    rect(ptr, width, height, 39, 67, 1, 20, darkGreen);
+    flower(ptr, width, height, 40, 67, 10, white);
+
+    flower(ptr, width, height, 50, 25, 10, pureWhite);
+    flower(ptr, width, height, 50 + 15, 25, 10, pureWhite);
+    flower(ptr, width, height, 50 + 30, 25, 10, pureWhite);
+
+    flower(ptr, width, height, 4, 4, 40, yellow);
 
     commitImage(ft, ptr, width, height);
 
@@ -89,12 +124,6 @@ void commitImage(FILE *ft, struct color *data, int width, int height)
             putc((data + coordToOffset(x, y, width, height))->r, ft);
         }
     }
-    //for(int i = 0; i < width * height; i++)
-    //{
-        //putc((data + i)->b, ft);
-        //putc((data + i)->g, ft);
-        //putc((data + i)->r, ft);
-    //}
 }
 
 void rect(color *data, int imgWidth, int imgHeight, int x, int y, int width, int height, color *fill)
@@ -108,5 +137,48 @@ void rect(color *data, int imgWidth, int imgHeight, int x, int y, int width, int
             (data + coordToOffset(dx, dy, imgWidth, imgHeight))->b = fill->b;
         }
     }
+}
+
+void circle(color *data, int imgWidth, int imgHeight, int x, int y, int radius, color *fill)
+{
+    int twoRadius = 2 * radius;
+    double end = 2 * PI;
+    double stepSize = end / 50;
+
+    //for(int dx = x; dx < x + twoRadius; dx++)
+    //{
+        //int sPos = (int)(sin((dx - x) / (twoRadius / PI)) * radius);
+        //point(data, imgWidth, imgHeight, dx, y - sPos, fill);
+        //point(data, imgWidth, imgHeight, dx, y + sPos, fill);
+    //}
+
+    double angle = 0;
+    double px = (sin(angle) * radius) + x;
+    double py = (-cos(angle) * radius) + y;
+    while(angle <= end)
+    {
+        point(data, imgWidth, imgHeight, px, py, fill);
+
+        angle = angle + stepSize;
+
+        px = (sin(angle) * radius) + x;
+        py = (-cos(angle) * radius) + y;
+    }
+}
+
+void flower(color *data, int imgWidth, int imgHeight, int x, int y, int radius, color *fill)
+{
+    for(int i = 1; i <= radius; i++)
+    {
+        circle(data, imgWidth, imgHeight, x, y, i, fill);
+    }
+}
+
+void point(color *data, int imgWidth, int imgHeight, int x, int y, color *fill)
+{
+    if(x < 0 || x > imgWidth || y < 0 || y > imgHeight) { return; }
+    (data + coordToOffset(x, y, imgWidth, imgHeight))->r = fill->r;
+    (data + coordToOffset(x, y, imgWidth, imgHeight))->g = fill->g;
+    (data + coordToOffset(x, y, imgWidth, imgHeight))->b = fill->b;
 }
 
