@@ -4,158 +4,151 @@
 
 #define PI 3.14159265
 
-typedef struct color
+struct color
 {
     unsigned char r, g, b;
 };
 
-void addTgaHeader(FILE *ft, int width, int height);
+char const *imageName = "result.tga";
+int const imageWidth = 100;
+int const imageHeight = 100;
 
-void commitImage(FILE *ft, struct color *data, int width, int height);
+int resolution = imageWidth * imageHeight;
+FILE *imageFile;
+struct color *imagePixels;
 
-void rect(color *data, int imgWidth, int imgHeight, int x, int y, int width, int height, color *fill);
+// COLORS
+struct color *green;
+struct color *darkGreen;
+struct color *white;
+struct color *pureWhite;
+struct color *yellow;
+struct color *blue;
 
-void circle(color *data, int imgWidth, int imgHeight, int x, int y, int radius, color *fill);
-
-void flower(color *data, int imgWidth, int imgHeight, int x, int y, int radius, color *fill);
-
-void point(color *data, int imgWidth, int imgHeight, int x, int y, color *fill);
-
-int coordToOffset(int x, int y, int width, int height)
+int coordToOffset(int x, int y)
 {
-    return x * width + y;
+    return x * imageWidth + y;
 }
 
-int main(void)
+void fillImage(struct color *fill)
 {
-    int const width = 100;
-    int const height = 100;
-    char const *name = "result.tga";
-
-    FILE *ft;
-    ft = fopen(name, "w");
-    addTgaHeader(ft, width, height);
-
-    color *ptr;
-    ptr = (color*) malloc((width * height) * sizeof(color));
-
-    int resolution = width * height;
     for(int i = 0; i <= resolution; i++)
     {
-        (ptr + i)->r = 0;
-        (ptr + i)->g = 153;
-        (ptr + i)->b = 204;
+        (imagePixels + i)->r = fill->r;
+        (imagePixels + i)->g = fill->g;
+        (imagePixels + i)->b = fill->b;
     }
+}
 
-    color *green;
-    green = (color*) malloc(sizeof(color));
+void loadColors()
+{
+    green = (struct color*) malloc(sizeof(struct color));
     green->r = 23;
     green->g = 167;
     green->b = 47;
 
-    color *darkGreen;
-    darkGreen = (color*) malloc(sizeof(color));
+    darkGreen = (struct color*) malloc(sizeof(struct color));
     darkGreen->r = 9;
     darkGreen->g = 67;
     darkGreen->b = 19;
 
-    color *white;
-    white = (color*) malloc(sizeof(color));
+    white = (struct color*) malloc(sizeof(struct color));
     white->r = 234;
     white->g = 234;
     white->b = 234;
 
-    color *yellow;
-    yellow = (color*) malloc(sizeof(color));
+    yellow = (struct color*) malloc(sizeof(struct color));
     yellow->r = 255;
     yellow->g = 255;
     yellow->b = 0;
 
-    color *pureWhite;
-    pureWhite = (color*) malloc(sizeof(color));
+    pureWhite = (struct color*) malloc(sizeof(struct color));
     pureWhite->r = 255;
     pureWhite->g = 255;
     pureWhite->b = 255;
 
-    rect(ptr, width, height, 0, 50, width, 50, green);
+    blue = (struct color*) malloc(sizeof(struct color));
+    blue->r = 0;
+    blue->g = 153;
+    blue->b = 204;
+}
 
-    rect(ptr, width, height, 39, 67, 1, 20, darkGreen);
-    flower(ptr, width, height, 40, 67, 10, white);
-
-    flower(ptr, width, height, 50, 25, 10, pureWhite);
-    flower(ptr, width, height, 50 + 15, 25, 10, pureWhite);
-    flower(ptr, width, height, 50 + 30, 25, 10, pureWhite);
-
-    flower(ptr, width, height, 4, 4, 40, yellow);
-
-    commitImage(ft, ptr, width, height);
-
-    fclose(ft);
-    free(ptr);
+void freeColors()
+{
     free(green);
     free(darkGreen);
     free(white);
     free(yellow);
     free(pureWhite);
-    return 0;
 }
 
-void addTgaHeader(FILE *ft, int width, int height)
+void addTgaHeader()
 {
-    putc(0,ft);
-    putc(0,ft);
-    putc(2,ft);                         /* uncompressed RGB */
-    putc(0,ft); putc(0,ft);
-    putc(0,ft); putc(0,ft);
-    putc(0,ft);
-    putc(0,ft); putc(0,ft);           /* X origin */
-    putc(0,ft); putc(0,ft);           /* y origin */
-    putc((width & 0x00FF),ft);
-    putc((width & 0xFF00) / 256,ft);
-    putc((height & 0x00FF),ft);
-    putc((height & 0xFF00) / 256,ft);
-    putc(24,ft);                        /* 24 bit bitmap */
-    putc(0,ft);
+    putc(0, imageFile);
+    putc(0, imageFile);
+    putc(2, imageFile);                     /* uncompressed RGB */
+    putc(0, imageFile); putc(0, imageFile);
+    putc(0, imageFile); putc(0, imageFile);
+    putc(0, imageFile);
+    putc(0, imageFile); putc(0, imageFile); /* X origin */
+    putc(0, imageFile); putc(0, imageFile); /* y origin */
+
+    putc((imageWidth & 0x00FF), imageFile);
+    putc((imageWidth & 0xFF00) / 256, imageFile);
+
+    putc((imageHeight & 0x00FF), imageFile);
+    putc((imageHeight & 0xFF00) / 256, imageFile);
+
+    putc(24, imageFile); /* 24 bit bitmap */
+    putc(0, imageFile);
 }
 
-void commitImage(FILE *ft, struct color *data, int width, int height)
+void commitImage()
 {
-    for(int y = height - 1; y >= 0; y--)
+    for(int y = imageHeight - 1; y >= 0; y--)
     {
-        for(int x = 0; x < width; x++)
+        for(int x = 0; x < imageWidth; x++)
         {
-            putc((data + coordToOffset(x, y, width, height))->b, ft);
-            putc((data + coordToOffset(x, y, width, height))->g, ft);
-            putc((data + coordToOffset(x, y, width, height))->r, ft);
+            putc((imagePixels + coordToOffset(x, y))->b, imageFile);
+            putc((imagePixels + coordToOffset(x, y))->g, imageFile);
+            putc((imagePixels + coordToOffset(x, y))->r, imageFile);
         }
     }
 }
 
-void rect(color *data, int imgWidth, int imgHeight, int x, int y, int width, int height, color *fill)
+void rect(int x, int y, int width, int height, struct color *fill)
 {
     for(int dx = x; dx < x + width; dx++)
     {
         for(int dy = y; dy < y + height; dy++)
         {
-            (data + coordToOffset(dx, dy, imgWidth, imgHeight))->r = fill->r;
-            (data + coordToOffset(dx, dy, imgWidth, imgHeight))->g = fill->g;
-            (data + coordToOffset(dx, dy, imgWidth, imgHeight))->b = fill->b;
+            (imagePixels + coordToOffset(dx, dy))->r = fill->r;
+            (imagePixels + coordToOffset(dx, dy))->g = fill->g;
+            (imagePixels + coordToOffset(dx, dy))->b = fill->b;
         }
     }
 }
 
-void circle(color *data, int imgWidth, int imgHeight, int x, int y, int radius, color *fill)
+void point(int x, int y, struct color *fill)
 {
-    int twoRadius = 2 * radius;
+    if(x < 0 || x > imageWidth || y < 0 || y > imageHeight) { return; }
+    (imagePixels + coordToOffset(x, y))->r = fill->r;
+    (imagePixels + coordToOffset(x, y))->g = fill->g;
+    (imagePixels + coordToOffset(x, y))->b = fill->b;
+}
+
+void circle(int x, int y, int radius, struct color *fill)
+{
     double end = 2 * PI;
     double stepSize = end / 50;
 
     double angle = 0;
     double px = (sin(angle) * radius) + x;
     double py = (-cos(angle) * radius) + y;
+
     while(angle <= end)
     {
-        point(data, imgWidth, imgHeight, px, py, fill);
+        point((int)px, (int)py, fill);
 
         angle = angle + stepSize;
 
@@ -164,19 +157,47 @@ void circle(color *data, int imgWidth, int imgHeight, int x, int y, int radius, 
     }
 }
 
-void flower(color *data, int imgWidth, int imgHeight, int x, int y, int radius, color *fill)
+void flower(int x, int y, int radius, struct color *fill)
 {
     for(int i = 1; i <= radius; i++)
     {
-        circle(data, imgWidth, imgHeight, x, y, i, fill);
+        circle(x, y, i, fill);
     }
 }
 
-void point(color *data, int imgWidth, int imgHeight, int x, int y, color *fill)
+int main(void)
 {
-    if(x < 0 || x > imgWidth || y < 0 || y > imgHeight) { return; }
-    (data + coordToOffset(x, y, imgWidth, imgHeight))->r = fill->r;
-    (data + coordToOffset(x, y, imgWidth, imgHeight))->g = fill->g;
-    (data + coordToOffset(x, y, imgWidth, imgHeight))->b = fill->b;
+    imageFile = fopen(imageName, "w");
+    addTgaHeader();
+    loadColors();
+
+    imagePixels = (struct color*) malloc(resolution * sizeof(struct color));
+
+    fillImage(blue);
+
+    /* Draw the grass */
+    rect(0, 50, imageWidth, 50, green);
+
+    /* Draw the flower */
+    rect(39, 67, 1, 20, darkGreen);
+    flower(40, 67, 10, white);
+
+    /* Draw the cloud */
+    flower(50, 25, 10, pureWhite);
+    flower(50 + 15, 25, 10, pureWhite);
+    flower(50 + 30, 25, 10, pureWhite);
+
+    /* Draw the Sun */
+    flower(4, 4, 40, yellow);
+
+    /* Save Image */
+    commitImage();
+    fclose(imageFile);
+
+    /* Free memory */
+    free(imageFile);
+    freeColors();
+
+    return 0;
 }
 

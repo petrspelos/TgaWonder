@@ -54,4 +54,7 @@ dkms.conf
 # Application files
 result.tga
 
+# CMake
+cmake-build-debug/
+
 .idea/
