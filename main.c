@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+#include <stdbool.h>
 
 #define PI 3.14159265
 
@@ -22,7 +23,7 @@ enum tgaDataTypeCode {
 };
 
 // IMAGE
-char const *imageName = "result.tga";
+char const *imageName = "result-runlength.tga";
 int const imageWidth = 800;
 int const imageHeight = 600;
 
@@ -98,7 +99,7 @@ void addTgaHeader()
 {
     putc(0, imageFile);
     putc(0, imageFile);
-    putc(uncompressedRgb, imageFile);
+    putc(runLengthRgb, imageFile);
     putc(0, imageFile); putc(0, imageFile);
     putc(0, imageFile); putc(0, imageFile);
     putc(0, imageFile);
@@ -115,17 +116,72 @@ void addTgaHeader()
     putc(0, imageFile);
 }
 
+bool colorsAreSame(color *a, color *b)
+{
+    if( a->r == b ->r &&
+        a->g == b->g &&
+        a->b == b->b)
+    {
+        return true;
+    }
+    return false;
+}
+
 void commitImage()
 {
+    char repLength = 0;
+    color *currentColor;
+    currentColor = (color*) malloc(sizeof(color));
+    currentColor->b = (imagePixels + coordToOffset(0, imageHeight - 1))->b;
+    currentColor->g = (imagePixels + coordToOffset(0, imageHeight - 1))->g;
+    currentColor->r = (imagePixels + coordToOffset(0, imageHeight - 1))->r;
+
     for(int y = imageHeight - 1; y >= 0; y--)
     {
         for(int x = 0; x < imageWidth; x++)
         {
-            putc((imagePixels + coordToOffset(x, y))->b, imageFile);
-            putc((imagePixels + coordToOffset(x, y))->g, imageFile);
-            putc((imagePixels + coordToOffset(x, y))->r, imageFile);
+            bool isRepeating = false;
+            if(colorsAreSame(currentColor, (imagePixels + coordToOffset(x, y))) && repLength < 127)
+            {
+                repLength++;
+                if(x == imageWidth - 1 && y == 0)
+                {
+                    isRepeating = true;
+                }
+                else
+                {
+                    continue;
+                }
+            }
+
+            // Either found a different color OR ran into a repetition limit OR the image ended
+            // Write down the repetition and try again
+
+            putc(repLength + 127, imageFile);
+            putc(currentColor->b, imageFile);
+            putc(currentColor->g, imageFile);
+            putc(currentColor->r, imageFile);
+
+            currentColor->b = (imagePixels + coordToOffset(x, y))->b;
+            currentColor->g = (imagePixels + coordToOffset(x, y))->g;
+            currentColor->r = (imagePixels + coordToOffset(x, y))->r;
+
+
+            if(x == imageWidth - 1 && y == 0 && !isRepeating)
+            {
+                putc(128, imageFile);
+                putc(currentColor->b, imageFile);
+                putc(currentColor->g, imageFile);
+                putc(currentColor->r, imageFile);
+            }
+            else
+            {
+                repLength = 1;
+            }
         }
     }
+
+    free(currentColor);
 }
 
 void rect(int x, int y, int width, int height, color *fill)
