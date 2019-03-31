@@ -4,33 +4,46 @@
 
 #define PI 3.14159265
 
-struct color
+typedef struct
 {
     unsigned char r, g, b;
+}color;
+
+enum tgaDataTypeCode {
+    noImageData = 0,
+    uncompressedColorMap = 1,
+    uncompressedRgb = 2,
+    uncompressedBlackAndWhite = 3,
+    runLengthColorMap = 9,
+    runLengthRgb = 10,
+    compressedBlackAndWhite = 11,
+    compressedColorMapHuffmanDeltaRunlength = 32,
+    compressedColorMapHuffmanDeltaRunlengthFourPass = 33
 };
 
+// IMAGE
 char const *imageName = "result.tga";
-int const imageWidth = 100;
-int const imageHeight = 100;
+int const imageWidth = 800;
+int const imageHeight = 600;
 
 int resolution = imageWidth * imageHeight;
 FILE *imageFile;
-struct color *imagePixels;
+color *imagePixels;
 
 // COLORS
-struct color *green;
-struct color *darkGreen;
-struct color *white;
-struct color *pureWhite;
-struct color *yellow;
-struct color *blue;
+color green = { 23, 167, 47 };
+color *darkGreen;
+color *white;
+color *pureWhite;
+color *yellow;
+color *blue;
 
 int coordToOffset(int x, int y)
 {
-    return x * imageWidth + y;
+    return y * imageWidth + x;
 }
 
-void fillImage(struct color *fill)
+void fillImage(color *fill)
 {
     for(int i = 0; i <= resolution; i++)
     {
@@ -42,32 +55,32 @@ void fillImage(struct color *fill)
 
 void loadColors()
 {
-    green = (struct color*) malloc(sizeof(struct color));
-    green->r = 23;
-    green->g = 167;
-    green->b = 47;
+    //green = (struct color*) malloc(sizeof(struct color));
+    //green->r = 23;
+    //green->g = 167;
+    //green->b = 47;
 
-    darkGreen = (struct color*) malloc(sizeof(struct color));
+    darkGreen = (color*) malloc(sizeof(color));
     darkGreen->r = 9;
     darkGreen->g = 67;
     darkGreen->b = 19;
 
-    white = (struct color*) malloc(sizeof(struct color));
+    white = (color*) malloc(sizeof(color));
     white->r = 234;
     white->g = 234;
     white->b = 234;
 
-    yellow = (struct color*) malloc(sizeof(struct color));
+    yellow = (color*) malloc(sizeof(color));
     yellow->r = 255;
     yellow->g = 255;
     yellow->b = 0;
 
-    pureWhite = (struct color*) malloc(sizeof(struct color));
+    pureWhite = (color*) malloc(sizeof(color));
     pureWhite->r = 255;
     pureWhite->g = 255;
     pureWhite->b = 255;
 
-    blue = (struct color*) malloc(sizeof(struct color));
+    blue = (color*) malloc(sizeof(color));
     blue->r = 0;
     blue->g = 153;
     blue->b = 204;
@@ -75,7 +88,6 @@ void loadColors()
 
 void freeColors()
 {
-    free(green);
     free(darkGreen);
     free(white);
     free(yellow);
@@ -86,7 +98,7 @@ void addTgaHeader()
 {
     putc(0, imageFile);
     putc(0, imageFile);
-    putc(2, imageFile);                     /* uncompressed RGB */
+    putc(uncompressedRgb, imageFile);
     putc(0, imageFile); putc(0, imageFile);
     putc(0, imageFile); putc(0, imageFile);
     putc(0, imageFile);
@@ -116,7 +128,7 @@ void commitImage()
     }
 }
 
-void rect(int x, int y, int width, int height, struct color *fill)
+void rect(int x, int y, int width, int height, color *fill)
 {
     for(int dx = x; dx < x + width; dx++)
     {
@@ -129,7 +141,7 @@ void rect(int x, int y, int width, int height, struct color *fill)
     }
 }
 
-void point(int x, int y, struct color *fill)
+void point(int x, int y, color *fill)
 {
     if(x < 0 || x > imageWidth || y < 0 || y > imageHeight) { return; }
     (imagePixels + coordToOffset(x, y))->r = fill->r;
@@ -137,7 +149,7 @@ void point(int x, int y, struct color *fill)
     (imagePixels + coordToOffset(x, y))->b = fill->b;
 }
 
-void circle(int x, int y, int radius, struct color *fill)
+void circle(int x, int y, int radius, color *fill)
 {
     double end = 2 * PI;
     double stepSize = end / 50;
@@ -157,7 +169,7 @@ void circle(int x, int y, int radius, struct color *fill)
     }
 }
 
-void flower(int x, int y, int radius, struct color *fill)
+void flower(int x, int y, int radius, color *fill)
 {
     for(int i = 1; i <= radius; i++)
     {
@@ -171,12 +183,12 @@ int main(void)
     addTgaHeader();
     loadColors();
 
-    imagePixels = (struct color*) malloc(resolution * sizeof(struct color));
+    imagePixels = (color*) malloc(resolution * sizeof(color));
 
     fillImage(blue);
 
     /* Draw the grass */
-    rect(0, 50, imageWidth, 50, green);
+    rect(0, 50, imageWidth, imageHeight - 50, &green);
 
     /* Draw the flower */
     rect(39, 67, 1, 20, darkGreen);
@@ -200,4 +212,3 @@ int main(void)
 
     return 0;
 }
-
