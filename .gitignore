@@ -58,3 +58,4 @@ result.tga
 cmake-build-debug/
 
 .idea/
+.vscode/

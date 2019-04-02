@@ -8,9 +8,10 @@
 typedef struct
 {
     unsigned char r, g, b;
-}color;
+} color;
 
-enum tgaDataTypeCode {
+enum tgaDataTypeCode
+{
     noImageData = 0,
     uncompressedColorMap = 1,
     uncompressedRgb = 2,
@@ -32,7 +33,7 @@ FILE *imageFile;
 color *imagePixels;
 
 // COLORS
-color green = { 23, 167, 47 };
+color green = {23, 167, 47};
 color *darkGreen;
 color *white;
 color *pureWhite;
@@ -46,7 +47,7 @@ int coordToOffset(int x, int y)
 
 void fillImage(color *fill)
 {
-    for(int i = 0; i <= resolution; i++)
+    for (int i = 0; i <= resolution; i++)
     {
         (imagePixels + i)->r = fill->r;
         (imagePixels + i)->g = fill->g;
@@ -61,27 +62,27 @@ void loadColors()
     //green->g = 167;
     //green->b = 47;
 
-    darkGreen = (color*) malloc(sizeof(color));
+    darkGreen = (color *)malloc(sizeof(color));
     darkGreen->r = 9;
     darkGreen->g = 67;
     darkGreen->b = 19;
 
-    white = (color*) malloc(sizeof(color));
+    white = (color *)malloc(sizeof(color));
     white->r = 234;
     white->g = 234;
     white->b = 234;
 
-    yellow = (color*) malloc(sizeof(color));
+    yellow = (color *)malloc(sizeof(color));
     yellow->r = 255;
     yellow->g = 255;
     yellow->b = 0;
 
-    pureWhite = (color*) malloc(sizeof(color));
+    pureWhite = (color *)malloc(sizeof(color));
     pureWhite->r = 255;
     pureWhite->g = 255;
     pureWhite->b = 255;
 
-    blue = (color*) malloc(sizeof(color));
+    blue = (color *)malloc(sizeof(color));
     blue->r = 0;
     blue->g = 153;
     blue->b = 204;
@@ -100,11 +101,15 @@ void addTgaHeader()
     putc(0, imageFile);
     putc(0, imageFile);
     putc(runLengthRgb, imageFile);
-    putc(0, imageFile); putc(0, imageFile);
-    putc(0, imageFile); putc(0, imageFile);
     putc(0, imageFile);
-    putc(0, imageFile); putc(0, imageFile); /* X origin */
-    putc(0, imageFile); putc(0, imageFile); /* y origin */
+    putc(0, imageFile);
+    putc(0, imageFile);
+    putc(0, imageFile);
+    putc(0, imageFile);
+    putc(0, imageFile);
+    putc(0, imageFile); /* X origin */
+    putc(0, imageFile);
+    putc(0, imageFile); /* y origin */
 
     putc((imageWidth & 0x00FF), imageFile);
     putc((imageWidth & 0xFF00) / 256, imageFile);
@@ -118,7 +123,7 @@ void addTgaHeader()
 
 bool colorsAreSame(color *a, color *b)
 {
-    if( a->r == b ->r &&
+    if (a->r == b->r &&
         a->g == b->g &&
         a->b == b->b)
     {
@@ -129,22 +134,25 @@ bool colorsAreSame(color *a, color *b)
 
 void commitImage()
 {
+    //sgets
+    //sscanf
+
     char repLength = 0;
     color *currentColor;
-    currentColor = (color*) malloc(sizeof(color));
+    currentColor = (color *)malloc(sizeof(color));
     currentColor->b = (imagePixels + coordToOffset(0, imageHeight - 1))->b;
     currentColor->g = (imagePixels + coordToOffset(0, imageHeight - 1))->g;
     currentColor->r = (imagePixels + coordToOffset(0, imageHeight - 1))->r;
 
-    for(int y = imageHeight - 1; y >= 0; y--)
+    for (int y = imageHeight - 1; y >= 0; y--)
     {
-        for(int x = 0; x < imageWidth; x++)
+        for (int x = 0; x < imageWidth; x++)
         {
             bool isRepeating = false;
-            if(colorsAreSame(currentColor, (imagePixels + coordToOffset(x, y))) && repLength < 127)
+            if (colorsAreSame(currentColor, (imagePixels + coordToOffset(x, y))) && repLength < 127)
             {
                 repLength++;
-                if(x == imageWidth - 1 && y == 0)
+                if (x == imageWidth - 1 && y == 0)
                 {
                     isRepeating = true;
                 }
@@ -166,8 +174,7 @@ void commitImage()
             currentColor->g = (imagePixels + coordToOffset(x, y))->g;
             currentColor->r = (imagePixels + coordToOffset(x, y))->r;
 
-
-            if(x == imageWidth - 1 && y == 0 && !isRepeating)
+            if (x == imageWidth - 1 && y == 0 && !isRepeating)
             {
                 putc(128, imageFile);
                 putc(currentColor->b, imageFile);
@@ -186,9 +193,9 @@ void commitImage()
 
 void rect(int x, int y, int width, int height, color *fill)
 {
-    for(int dx = x; dx < x + width; dx++)
+    for (int dx = x; dx < x + width; dx++)
     {
-        for(int dy = y; dy < y + height; dy++)
+        for (int dy = y; dy < y + height; dy++)
         {
             (imagePixels + coordToOffset(dx, dy))->r = fill->r;
             (imagePixels + coordToOffset(dx, dy))->g = fill->g;
@@ -199,7 +206,10 @@ void rect(int x, int y, int width, int height, color *fill)
 
 void point(int x, int y, color *fill)
 {
-    if(x < 0 || x > imageWidth || y < 0 || y > imageHeight) { return; }
+    if (x < 0 || x > imageWidth || y < 0 || y > imageHeight)
+    {
+        return;
+    }
     (imagePixels + coordToOffset(x, y))->r = fill->r;
     (imagePixels + coordToOffset(x, y))->g = fill->g;
     (imagePixels + coordToOffset(x, y))->b = fill->b;
@@ -214,7 +224,7 @@ void circle(int x, int y, int radius, color *fill)
     double px = (sin(angle) * radius) + x;
     double py = (-cos(angle) * radius) + y;
 
-    while(angle <= end)
+    while (angle <= end)
     {
         point((int)px, (int)py, fill);
 
@@ -227,19 +237,19 @@ void circle(int x, int y, int radius, color *fill)
 
 void flower(int x, int y, int radius, color *fill)
 {
-    for(int i = 1; i <= radius; i++)
+    for (int i = 1; i <= radius; i++)
     {
         circle(x, y, i, fill);
     }
 }
 
-int main(void)
+int main(int c, char *argv[])
 {
     imageFile = fopen(imageName, "w");
     addTgaHeader();
     loadColors();
 
-    imagePixels = (color*) malloc(resolution * sizeof(color));
+    imagePixels = (color *)malloc(resolution * sizeof(color));
 
     fillImage(blue);
 
